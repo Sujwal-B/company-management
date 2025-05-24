@@ -218,7 +218,7 @@ class ProjectServiceTest {
     @Test
     void removeEmployeeFromProject_shouldRemoveEmployeeAndSaveProject() {
         // Setup: employee1 is already in project1
-        project1.getEmployeesInternal().add(employee1); // Use internal access for setup
+        project1.getEmployees().add(employee1); // Use internal access for setup
         employee1.getProjectsInternal().add(project1);  // Use internal access for setup
 
         when(projectRepository.findById(1L)).thenReturn(Optional.of(project1));
