@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link as RouterLink } from 'react-router-dom'; // Added RouterLink
 import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext'; // Import useNotification
 import authService from '../services/authService';
-import { Container, TextField, Button, Typography, Box, Paper, CircularProgress } from '@mui/material'; // Removed Alert
+import { Container, TextField, Button, Typography, Box, Paper, CircularProgress, Link } from '@mui/material'; // Removed Alert, Added Link
 
-const LoginPage = () => {
+const LoginPage = ({ openRegisterModal }) => { // Added openRegisterModal prop
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     // const [error, setError] = useState(''); // Replaced by global notification
@@ -93,12 +93,24 @@ const LoginPage = () => {
                         type="submit"
                         fullWidth
                         variant="contained"
-                        sx={{ mt: 3, mb: 2 }}
+                        sx={{ 
+                            mt: 3, 
+                            mb: 2,
+                            transition: 'filter 0.15s ease-in-out, box-shadow 0.15s ease-in-out',
+                            '&:hover': {
+                                filter: 'brightness(0.9)',
+                                boxShadow: (theme) => theme.shadows[4], // Increase shadow on hover
+                            }
+                        }}
                         disabled={loading} // Disable button when loading
                     >
                         {loading ? <CircularProgress size={24} color="inherit" /> : "Sign In"}
                     </Button>
-                    {/* Optional: Links to sign up or forgot password could go here */}
+                    <Box textAlign="center" sx={{ mt: 2 }}>
+                        <Link component="button" variant="body2" onClick={openRegisterModal} type="button">
+                            Don't have an account? Sign Up
+                        </Link>
+                    </Box>
                 </Box>
             </Paper>
         </Container>
