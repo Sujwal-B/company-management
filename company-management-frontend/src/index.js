@@ -3,13 +3,16 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
-import { AuthProvider } from './context/AuthContext'; // Import AuthProvider
+import { AuthProvider } from './context/AuthContext';
+import { NotificationProvider } from './context/NotificationContext'; // Import NotificationProvider
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <AuthProvider> {/* Wrap App with AuthProvider */}
-      <App />
+    <AuthProvider>
+      <NotificationProvider> {/* Wrap App with NotificationProvider */}
+        <App />
+      </NotificationProvider>
     </AuthProvider>
   </React.StrictMode>
 );
