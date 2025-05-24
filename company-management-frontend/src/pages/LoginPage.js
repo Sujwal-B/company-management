@@ -5,8 +5,6 @@ import { useNotification } from '../context/NotificationContext'; // Import useN
 import authService from '../services/authService';
 import { Container, TextField, Button, Typography, Box, Paper, CircularProgress } from '@mui/material'; // Removed Alert
 
-
-
 const LoginPage = () => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
@@ -31,7 +29,6 @@ const LoginPage = () => {
         try {
             const response = await authService.login(username, password);
             if (response && response.jwt) {
-
                 contextLogin(response.jwt);
                 navigate('/dashboard');
                 showNotification('Login successful!', 'success'); // Success notification
@@ -44,14 +41,6 @@ const LoginPage = () => {
             showNotification(err.message || 'Login failed. Please check your credentials.', 'error');
         } finally {
             setLoading(false);
-                contextLogin(response.jwt); // Update auth context
-                navigate('/dashboard'); // Redirect to dashboard
-            } else {
-                setError('Login failed: No token received.');
-            }
-        } catch (err) {
-            // authService.login already logs the detailed error
-            setError(err.message || 'Login failed. Please check your credentials.');
         }
     };
 
@@ -74,24 +63,6 @@ const LoginPage = () => {
                 <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1, width: '100%' }}>
                     <TextField
                         variant="outlined"
-            <Box
-                sx={{
-                    marginTop: 8,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                }}
-            >
-                <Typography component="h1" variant="h5">
-                    Sign In
-                </Typography>
-                {error && (
-                    <Alert severity="error" sx={{ width: '100%', mt: 2 }}>
-                        {error}
-                    </Alert>
-                )}
-                <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
-                    <TextField
                         margin="normal"
                         required
                         fullWidth
@@ -106,10 +77,6 @@ const LoginPage = () => {
                     />
                     <TextField
                         variant="outlined" // Explicitly set variant
-
-                    />
-                    <TextField
-
                         margin="normal"
                         required
                         fullWidth
@@ -120,7 +87,6 @@ const LoginPage = () => {
                         autoComplete="current-password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-
                         disabled={loading} // Disable when loading
                     />
                     <Button
@@ -135,11 +101,6 @@ const LoginPage = () => {
                     {/* Optional: Links to sign up or forgot password could go here */}
                 </Box>
             </Paper>
-                    >
-                        Sign In
-                    </Button>
-                </Box>
-            </Box>
         </Container>
     );
 };
