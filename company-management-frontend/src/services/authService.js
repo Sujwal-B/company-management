@@ -60,6 +60,44 @@ export const isAuthenticated = () => {
     return !!token; // Returns true if token is not null or empty, false otherwise.
 };
 
+/**
+ * Registers a new user.
+ * @param {object} userData - Object containing username, password, email, firstName, lastName.
+ * @returns {Promise<object>} The response data from the server, typically the created user object.
+ * @throws {Error} If registration fails or network error occurs.
+ */
+export const register = async (userData) => {
+    try {
+        const response = await axios.post(`${AUTH_API_URL}/register`, userData);
+        return response.data; // Contains the registered user data (e.g., id, username, email, etc.)
+    } catch (error) {
+        console.error('Registration failed:', error.response ? error.response.data : error.message);
+        if (error.response && error.response.data) {
+            // Prefer a specific message from the backend if available
+            if (error.response.data.message) {
+                throw new Error(error.response.data.message);
+            }
+            // If backend sends structured validation errors (e.g., from MethodArgumentNotValidException)
+            else if (error.response.data.errors && typeof error.response.data.errors === 'object') {
+                const errorMessages = Object.entries(error.response.data.errors)
+                    .map(([field, message]) => `${field}: ${message}`)
+                    .join('; ');
+                throw new Error(`Validation failed: ${errorMessages}`);
+            }
+            // Fallback for other server-side errors with a data payload
+            else {
+                throw new Error('Registration failed. Please check your input.');
+            }
+        } else if (error.request) {
+            // The request was made but no response was received
+            throw new Error('Registration failed. No response from server.');
+        } else {
+            // Something happened in setting up the request that triggered an Error
+            throw new Error(`Registration failed: ${error.message}`);
+        }
+    }
+};
+
 // Optional: Function to get user details from token (example, not used yet)
 /*
 import { jwtDecode } from 'jwt-decode'; // You'd need to install jwt-decode: npm install jwt-decode
@@ -89,6 +127,7 @@ const authService = {
     logout,
     getCurrentUserToken,
     isAuthenticated,
+    register, // Added register function
     // getUserDetailsFromToken, // Uncomment if you implement this
 };
 

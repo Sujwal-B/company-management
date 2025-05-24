@@ -22,6 +22,18 @@ public class User {
     @Column(nullable = false, length = 100) // Length might need adjustment based on password encoding
     private String password;
 
+    @Schema(description = "Email address of the user", example = "john.doe@example.com", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Column(unique = true, nullable = false, length = 100)
+    private String email;
+
+    @Schema(description = "First name of the user", example = "John", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Column(nullable = false, length = 50)
+    private String firstName;
+
+    @Schema(description = "Last name of the user", example = "Doe", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Column(nullable = false, length = 50)
+    private String lastName;
+
     @Schema(description = "Comma-separated list of roles assigned to the user", example = "ROLE_USER,ROLE_ADMIN")
     @Column(length = 200) // To store comma-separated roles
     private String roles;
@@ -30,9 +42,22 @@ public class User {
     public User() {
     }
 
-    public User(String username, String password, String roles) {
+    public User(String username, String password, String email, String firstName, String lastName, String roles) {
         this.username = username;
         this.password = password;
+        this.email = email;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.roles = roles;
+    }
+
+    public User(Long id, String username, String password, String email, String firstName, String lastName, String roles) {
+        this.id = id;
+        this.username = username;
+        this.password = password;
+        this.email = email;
+        this.firstName = firstName;
+        this.lastName = lastName;
         this.roles = roles;
     }
 
@@ -69,18 +94,43 @@ public class User {
         this.roles = roles;
     }
 
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
         return Objects.equals(id, user.id) &&
-               Objects.equals(username, user.username);
+               Objects.equals(username, user.username) &&
+               Objects.equals(email, user.email);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, username);
+        return Objects.hash(id, username, email);
     }
 
     @Override
@@ -88,6 +138,9 @@ public class User {
         return "User{" +
                "id=" + id +
                ", username='" + username + '\'' +
+               ", email='" + email + '\'' +
+               ", firstName='" + firstName + '\'' +
+               ", lastName='" + lastName + '\'' +
                // Do not include password in toString for security reasons
                ", roles='" + roles + '\'' +
                '}';
