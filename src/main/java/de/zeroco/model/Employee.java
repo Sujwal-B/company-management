@@ -144,7 +144,7 @@ public class Employee {
 
     // Internal getter for Project entity to maintain bidirectional consistency
     // Not strictly public API, used by Project's addEmployee/removeEmployee
-    Set<Project> getProjectsInternal() {
+    public Set<Project> getProjectsInternal() {
         if (this.projects == null) { // Should be initialized, but defensive
             this.projects = new HashSet<>();
         }
