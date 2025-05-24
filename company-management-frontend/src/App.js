@@ -12,26 +12,6 @@ import Notifier from './components/common/Notifier'; // Import Notifier
 import { AppBar, Toolbar, Typography, Button, Container, Box } from '@mui/material';
 
 
-
-import ProtectedRoute from './components/ProtectedRoute';
-import { useAuth } from './context/AuthContext'; // To use logout and check auth status
-import { AppBar, Toolbar, Typography, Button, Container, Box } from '@mui/material';
-
-
-// Placeholder for Dashboard
-const DashboardPage = () => {
-    const { logout } = useAuth();
-    return (
-        <Container>
-            <Typography variant="h4" sx={{ mt: 4 }}>Dashboard</Typography>
-            <Typography sx={{ mt: 2 }}>Welcome to your dashboard.</Typography>
-            <Button variant="contained" color="secondary" onClick={logout} sx={{ mt: 3 }}>
-                Logout
-            </Button>
-        </Container>
-    );
-};
-
 // Placeholder for a public Home page (optional)
 const HomePage = () => (
     <Container>
@@ -69,16 +49,6 @@ function App() {
                 </Toolbar>
             </AppBar>
             <Notifier /> {/* Add Notifier here to be available globally */}
-
-                    {isAuthenticated ? (
-                        <Button color="inherit" onClick={logout}>Logout</Button>
-                    ) : (
-                        <Button color="inherit" component={Link} to="/login">Login</Button>
-                    )}
-                     <Button color="inherit" component={Link} to="/">Home</Button>
-                </Toolbar>
-            </AppBar>
-        
             <Box component="main" sx={{ p: 3 }}>
                 <Routes>
                     <Route path="/login" element={<LoginPage />} />
@@ -87,12 +57,10 @@ function App() {
                     {/* Protected Routes */}
                     <Route element={<ProtectedRoute />}>
                         <Route path="/dashboard" element={<DashboardPage />} />
-
                         <Route path="/employees" element={<EmployeePage />} />
                         <Route path="/departments" element={<DepartmentPage />} />
                         <Route path="/projects" element={<ProjectPage />} />
                         <Route path="/profile" element={<ProfilePage />} /> {/* Add ProfilePage route */}
-                        {/* Add other protected routes here */}
                     </Route>
                     
                     {/* Fallback for unmatched routes (optional) */}
