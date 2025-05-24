@@ -138,10 +138,10 @@ public class EmployeeController {
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<Map<String, Boolean>> deleteEmployee(@PathVariable Long id) {
+    public ResponseEntity<Map<String, Object>> deleteEmployee(@PathVariable Long id) {
         try {
             employeeService.deleteEmployee(id);
-            Map<String, Boolean> response = new HashMap<>();
+            Map<String, Object> response = new HashMap<>();
             response.put("deleted", Boolean.TRUE);
             return ResponseEntity.ok(response); // 200 OK with a body
             // Alternatively, for 204 No Content:
