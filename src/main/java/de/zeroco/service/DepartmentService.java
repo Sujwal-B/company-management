@@ -4,6 +4,8 @@ import de.zeroco.exception.ResourceNotFoundException;
 import de.zeroco.model.Department;
 import de.zeroco.repository.DepartmentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +21,11 @@ public class DepartmentService {
     @Transactional(readOnly = true)
     public List<Department> getAllDepartments() {
         return departmentRepository.findAll();
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Department> getAllDepartments(Pageable pageable) {
+        return departmentRepository.findAll(pageable);
     }
 
     @Transactional(readOnly = true)

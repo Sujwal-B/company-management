@@ -2,8 +2,23 @@ import apiClient from './api'; // Assuming apiClient is the configured Axios ins
 
 const API_URL = '/projects'; // Base URL for project endpoints
 
-export const getAllProjects = () => {
-    return apiClient.get(API_URL);
+/**
+ * Fetches all projects with pagination.
+ * @param {number} page - The page number (0-indexed).
+ * @param {number} size - The number of items per page.
+ * @param {string} sortBy - The column to sort by (optional).
+ * @param {string} sortDir - The sort direction ('asc' or 'desc') (optional).
+ * @returns {Promise<AxiosResponse<any>>} The promise from the apiClient call.
+ */
+export const getAllProjects = (page = 0, size = 10, sortBy = 'id', sortDir = 'asc') => {
+    return apiClient.get(API_URL, {
+        params: {
+            page,
+            size,
+            sortBy,
+            sortDir
+        }
+    });
 };
 
 export const getProjectById = (id) => {

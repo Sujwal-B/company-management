@@ -27,25 +27,25 @@ const DepartmentPage = () => {
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [totalDepartments, setTotalDepartments] = useState(0);
 
-    const fetchDepartments = useCallback(async () => {
+    const fetchDepartments = useCallback(async (currentPage, currentRowsPerPage) => {
         setLoading(true);
-        // setError(null); // Replaced
         try {
-            const response = await departmentService.getAllDepartments();
-            setDepartments(response.data || []);
-            setTotalDepartments(response.data ? response.data.length : 0);
+            const response = await departmentService.getAllDepartments(currentPage, currentRowsPerPage);
+            setDepartments(response.data.content || []);
+            setTotalDepartments(response.data.totalElements || 0);
         } catch (err) {
             console.error("Failed to fetch departments:", err);
-            // setError(err.response?.data?.message || err.message || 'Failed to fetch departments.'); // Replaced
             showNotification(err.response?.data?.message || err.message || 'Failed to fetch departments.', 'error');
+            setDepartments([]);
+            setTotalDepartments(0);
         } finally {
             setLoading(false);
         }
-    }, [showNotification]); // Added showNotification dependency
+    }, [showNotification]);
 
     useEffect(() => {
-        fetchDepartments();
-    }, [fetchDepartments]);
+        fetchDepartments(page, rowsPerPage);
+    }, [fetchDepartments, page, rowsPerPage]);
 
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
@@ -78,7 +78,7 @@ const DepartmentPage = () => {
                 await departmentService.createDepartment(departmentData);
                 showNotification('Department created successfully!', 'success');
             }
-            await fetchDepartments(); 
+            fetchDepartments(page, rowsPerPage); // Refetch current page
             handleCloseForm();
         } catch (err) {
             console.error("Failed to save department:", err);
@@ -106,7 +106,7 @@ const DepartmentPage = () => {
         try {
             await departmentService.deleteDepartment(departmentToDeleteId);
             showNotification('Department deleted successfully!', 'success');
-            await fetchDepartments(); 
+            fetchDepartments(page, rowsPerPage); // Refetch current page
         } catch (err) {
             console.error("Failed to delete department:", err);
             // setError(err.response?.data?.message || err.message || 'Failed to delete department.'); // Replaced

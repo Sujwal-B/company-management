@@ -10,14 +10,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
+import org.mockito.ArgumentCaptor;
+
 
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
+// Map import removed as it's not directly used in the new tests, but can be kept if other tests need it.
+// import java.util.Map;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -26,6 +33,8 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.assertj.core.api.Assertions.assertThat; // For ArgumentCaptor assertions
+import org.springframework.data.domain.Sort; // For Sort.Direction in ArgumentCaptor test
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -68,25 +77,64 @@ class EmployeeControllerTest {
     }
 
     // --- Authenticated Access Tests (ROLE_USER where applicable) ---
+    // This test is modified to check for Page structure instead of List
     @Test
     @WithMockUser(username = "user", roles = {"USER"})
-    void getAllEmployees_authenticated_shouldReturnListOfEmployees() throws Exception {
-        when(employeeService.getAllEmployees()).thenReturn(List.of(employee1, employee2));
-        mockMvc.perform(get("/api/employees"))
+    void getAllEmployees_authenticated_shouldReturnPageOfEmployees() throws Exception {
+        Page<Employee> employeePage = new PageImpl<>(List.of(employee1, employee2), PageRequest.of(0, 10), 2);
+        when(employeeService.getAllEmployees(any(Pageable.class))).thenReturn(employeePage);
+
+        mockMvc.perform(get("/api/employees")
+                        .param("page", "0")
+                        .param("size", "10"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$", hasSize(2)))
-                .andExpect(jsonPath("$[0].email", is(employee1.getEmail())));
+                .andExpect(jsonPath("$.content", hasSize(2)))
+                .andExpect(jsonPath("$.content[0].email", is(employee1.getEmail())))
+                .andExpect(jsonPath("$.totalElements", is(2)))
+                .andExpect(jsonPath("$.totalPages", is(1)))
+                .andExpect(jsonPath("$.number", is(0)))
+                .andExpect(jsonPath("$.size", is(10)));
     }
     
     @Test
     @WithMockUser(username = "user", roles = {"USER"})
-    void getAllEmployees_authenticated_shouldReturnEmptyList() throws Exception {
-        when(employeeService.getAllEmployees()).thenReturn(Collections.emptyList());
-        mockMvc.perform(get("/api/employees"))
+    void getAllEmployees_authenticated_shouldReturnEmptyPage_whenNoEmployees() throws Exception {
+        Page<Employee> emptyPage = new PageImpl<>(Collections.emptyList(), PageRequest.of(0, 10), 0);
+        when(employeeService.getAllEmployees(any(Pageable.class))).thenReturn(emptyPage);
+
+        mockMvc.perform(get("/api/employees")
+                        .param("page", "0")
+                        .param("size", "10"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$", hasSize(0)));
+                .andExpect(jsonPath("$.content", hasSize(0)))
+                .andExpect(jsonPath("$.totalElements", is(0)))
+                .andExpect(jsonPath("$.totalPages", is(0))); // Or 1, depending on PageImpl behavior for empty list with total 0
+    }
+
+    @Test
+    @WithMockUser(username = "user", roles = {"USER"})
+    void getAllEmployees_shouldPassCorrectPageableToService() throws Exception {
+        Page<Employee> emptyPage = new PageImpl<>(Collections.emptyList(), PageRequest.of(1, 5), 0);
+        when(employeeService.getAllEmployees(any(Pageable.class))).thenReturn(emptyPage);
+
+        ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
+
+        mockMvc.perform(get("/api/employees")
+                        .param("page", "1")
+                        .param("size", "5")
+                        .param("sort", "lastName,desc")
+                        .param("sort", "firstName,asc")) // Example of multi-sort
+                .andExpect(status().isOk());
+
+        verify(employeeService).getAllEmployees(pageableCaptor.capture());
+        Pageable capturedPageable = pageableCaptor.getValue();
+
+        assertThat(capturedPageable.getPageNumber()).isEqualTo(1);
+        assertThat(capturedPageable.getPageSize()).isEqualTo(5);
+        assertThat(capturedPageable.getSort().getOrderFor("lastName").getDirection()).isEqualTo(Sort.Direction.DESC);
+        assertThat(capturedPageable.getSort().getOrderFor("firstName").getDirection()).isEqualTo(Sort.Direction.ASC);
     }
 
     @Test

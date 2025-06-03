@@ -4,6 +4,8 @@ import de.zeroco.exception.ResourceNotFoundException;
 import de.zeroco.model.Employee;
 import de.zeroco.repository.EmployeeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +21,11 @@ public class EmployeeService {
     @Transactional(readOnly = true)
     public List<Employee> getAllEmployees() {
         return employeeRepository.findAll();
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Employee> getAllEmployees(Pageable pageable) {
+        return employeeRepository.findAll(pageable);
     }
 
     @Transactional(readOnly = true)
