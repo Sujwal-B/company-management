@@ -6,6 +6,8 @@ import de.zeroco.model.Project;
 import de.zeroco.repository.EmployeeRepository;
 import de.zeroco.repository.ProjectRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +26,11 @@ public class ProjectService {
     @Transactional(readOnly = true)
     public List<Project> getAllProjects() {
         return projectRepository.findAll();
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Project> getAllProjects(Pageable pageable) {
+        return projectRepository.findAll(pageable);
     }
 
     @Transactional(readOnly = true)

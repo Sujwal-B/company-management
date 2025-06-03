@@ -28,33 +28,37 @@ const EmployeePage = () => {
     const [totalEmployees, setTotalEmployees] = useState(0);
 
 
-    const fetchEmployees = useCallback(async () => {
+    const fetchEmployees = useCallback(async (currentPage, currentRowsPerPage) => {
         setLoading(true);
-        // setError(null); // No longer needed
         try {
-            const response = await employeeService.getAllEmployees();
-            setEmployees(response.data || []);
-            setTotalEmployees(response.data ? response.data.length : 0); 
+            // Pass page and size to the service call
+            const response = await employeeService.getAllEmployees(currentPage, currentRowsPerPage);
+            // Assuming the backend returns data in the format { content: [...], totalElements: ... }
+            setEmployees(response.data.content || []);
+            setTotalEmployees(response.data.totalElements || 0);
         } catch (err) {
             console.error("Failed to fetch employees:", err);
-            // setError(err.response?.data?.message || err.message || 'Failed to fetch employees.'); // Replaced
             showNotification(err.response?.data?.message || err.message || 'Failed to fetch employees.', 'error');
         } finally {
             setLoading(false);
         }
-    }, [showNotification]); // Added showNotification to dependencies
+    }, [showNotification]);
 
     useEffect(() => {
-        fetchEmployees();
-    }, [fetchEmployees]);
+        // Fetch employees when page or rowsPerPage changes
+        fetchEmployees(page, rowsPerPage);
+    }, [fetchEmployees, page, rowsPerPage]);
     
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
+        // fetchEmployees(newPage, rowsPerPage); // fetchEmployees is now called by useEffect
     };
 
     const handleChangeRowsPerPage = (event) => {
-        setRowsPerPage(parseInt(event.target.value, 10));
-        setPage(0);
+        const newRowsPerPage = parseInt(event.target.value, 10);
+        setRowsPerPage(newRowsPerPage);
+        setPage(0); // Reset to first page
+        // fetchEmployees(0, newRowsPerPage); // fetchEmployees is now called by useEffect
     };
 
 
@@ -80,7 +84,8 @@ const EmployeePage = () => {
                 await employeeService.createEmployee(employeeData);
                 showNotification('Employee created successfully!', 'success');
             }
-            await fetchEmployees(); 
+            // Refresh data for the current page after create/update
+            fetchEmployees(page, rowsPerPage);
             handleCloseForm();
         } catch (err) {
             console.error("Failed to save employee:", err);
@@ -109,7 +114,9 @@ const EmployeePage = () => {
         try {
             await employeeService.deleteEmployee(employeeToDeleteId);
             showNotification('Employee deleted successfully!', 'success');
-            await fetchEmployees(); 
+            // Refresh data for the current page, potentially adjusting if it was the last item on a page
+            // For simplicity, just refetch current page. More complex logic could go to previous page if current becomes empty.
+            fetchEmployees(page, rowsPerPage);
         } catch (err) {
             console.error("Failed to delete employee:", err);
             // setError(err.response?.data?.message || err.message || 'Failed to delete employee.'); // Replaced

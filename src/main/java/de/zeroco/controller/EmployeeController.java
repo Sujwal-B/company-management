@@ -12,6 +12,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -35,13 +39,20 @@ public class EmployeeController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successfully retrieved list of employees",
                          content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                                            schema = @Schema(type = "array", implementation = Employee.class))),
+                                            schema = @Schema(implementation = Page.class))), // Updated schema
             @ApiResponse(responseCode = "401", description = "Unauthorized if JWT token is missing or invalid")
     })
     @GetMapping
     @PreAuthorize("isAuthenticated()")
-    public List<Employee> getAllEmployees() {
-        return employeeService.getAllEmployees();
+    public Page<Employee> getAllEmployees(
+            @Parameter(description = "Page number, 0-indexed", example = "0") @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "Number of items per page", example = "10") @RequestParam(defaultValue = "10") int size,
+            @Parameter(description = "Sort by column", example = "id") @RequestParam(defaultValue = "id") String sortBy,
+            @Parameter(description = "Sort direction", example = "asc") @RequestParam(defaultValue = "asc") String sortDir) {
+
+        Sort.Direction direction = sortDir.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
+        return employeeService.getAllEmployees(pageable);
     }
 
     @Operation(summary = "Get an employee by ID", description = "Retrieves a specific employee by their ID. Requires authentication.")

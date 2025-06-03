@@ -3,11 +3,22 @@ import apiClient from './api'; // Assuming apiClient is the configured Axios ins
 const API_URL = '/employees'; // Base URL for employee endpoints relative to apiClient's baseURL
 
 /**
- * Fetches all employees.
+ * Fetches all employees with pagination.
+ * @param {number} page - The page number (0-indexed).
+ * @param {number} size - The number of items per page.
+ * @param {string} sortBy - The column to sort by (optional).
+ * @param {string} sortDir - The sort direction ('asc' or 'desc') (optional).
  * @returns {Promise<AxiosResponse<any>>} The promise from the apiClient call.
  */
-export const getAllEmployees = () => {
-    return apiClient.get(API_URL);
+export const getAllEmployees = (page = 0, size = 10, sortBy = 'id', sortDir = 'asc') => {
+    return apiClient.get(API_URL, {
+        params: {
+            page,
+            size,
+            sortBy,
+            sortDir
+        }
+    });
 };
 
 /**

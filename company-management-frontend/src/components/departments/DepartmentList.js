@@ -28,7 +28,7 @@ const DepartmentList = ({ departments, onEdit, onDelete, page, rowsPerPage, tota
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {departments.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((department) => (
+                        {departments.map((department) => (
                             <TableRow hover key={department.id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
                                 <TableCell component="th" scope="row">
                                     {department.name}

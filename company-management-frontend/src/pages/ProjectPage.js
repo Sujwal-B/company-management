@@ -29,33 +29,58 @@ const ProjectPage = () => {
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [totalProjects, setTotalProjects] = useState(0);
 
-    const fetchProjectsAndEmployees = useCallback(async () => {
+    // Renamed to fetchProjects, and will fetch all employees separately for now
+    const fetchProjects = useCallback(async (currentPage, currentRowsPerPage) => {
         setLoading(true);
-        // setError(null); // Replaced
         try {
-            const [projectsResponse, employeesResponse] = await Promise.all([
-                projectService.getAllProjects(),
-                employeeService.getAllEmployees()
-            ]);
-            setProjects(projectsResponse.data || []);
-            setTotalProjects(projectsResponse.data ? projectsResponse.data.length : 0);
-            setAllEmployees(employeesResponse.data || []);
+            const projectsResponse = await projectService.getAllProjects(currentPage, currentRowsPerPage);
+            setProjects(projectsResponse.data.content || []);
+            setTotalProjects(projectsResponse.data.totalElements || 0);
+
+            // Fetch all employees - consider if this needs to be paginated or handled differently for ProjectForm
+            // For now, it fetches the first page of employees due to previous changes in employeeService
+            const employeesResponse = await employeeService.getAllEmployees(); // This now fetches page 0, size 10
+            // If ProjectForm needs ALL employees, this is a bug.
+            // A temporary fix might be to fetch a very large number of employees here, e.g. employeeService.getAllEmployees(0, 1000)
+            // Or, ideally, ProjectForm should have its own paginated employee selection.
+            // For this subtask, focusing on project list pagination.
+            setAllEmployees(employeesResponse.data.content || []);
+
         } catch (err) {
-            console.error("Failed to fetch data:", err);
-            const errorMessage = err.response?.data?.message || err.message || 'Failed to fetch initial data.';
-            // setError(errorMessage); // Replaced
-            showNotification(errorMessage, 'error');
+            console.error("Failed to fetch projects:", err);
+            showNotification(err.response?.data?.message || err.message || 'Failed to fetch projects.', 'error');
             setProjects([]);
-            setAllEmployees([]);
             setTotalProjects(0);
         } finally {
             setLoading(false);
         }
-    }, [showNotification]); // Added showNotification dependency
+    }, [showNotification]);
+
+    // Fetch all employees once, or manage them differently if the list is too large.
+    // This is a simplified approach. A better way would be a searchable/paginated selector in the form.
+    const fetchAllEmployeesForForm = useCallback(async () => {
+        try {
+            // Attempt to fetch a larger list of employees for the form, assuming not too many.
+            // This is a workaround. Ideally, the form component would handle this better.
+            const response = await employeeService.getAllEmployees(0, 1000); // Fetch up to 1000 employees
+            setAllEmployees(response.data.content || []);
+        } catch (error) {
+            console.error("Failed to fetch all employees for form:", error);
+            showNotification("Could not load all employees for the form.", "warning");
+            setAllEmployees([]); // Fallback to empty or previously fetched partial list
+        }
+    }, [showNotification]);
+
 
     useEffect(() => {
-        fetchProjectsAndEmployees();
-    }, [fetchProjectsAndEmployees]);
+        fetchProjects(page, rowsPerPage);
+    }, [fetchProjects, page, rowsPerPage]);
+
+    useEffect(() => {
+        // Fetch employees for the form when the component mounts
+        // This is separate from project list fetching to avoid re-fetching employees on project page change
+        fetchAllEmployeesForForm();
+    }, [fetchAllEmployeesForForm]);
 
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
@@ -88,7 +113,7 @@ const ProjectPage = () => {
                 await projectService.createProject(projectData);
                 showNotification('Project created successfully!', 'success');
             }
-            await fetchProjectsAndEmployees();
+            fetchProjects(page, rowsPerPage); // Refetch current page of projects
             handleCloseForm();
         } catch (err) {
             console.error("Failed to save project:", err);
@@ -116,7 +141,7 @@ const ProjectPage = () => {
         try {
             await projectService.deleteProject(projectToDeleteId);
             showNotification('Project deleted successfully!', 'success');
-            await fetchProjectsAndEmployees();
+            fetchProjects(page, rowsPerPage); // Refetch current page of projects
         } catch (err) {
             console.error("Failed to delete project:", err);
             // setError(err.response?.data?.message || err.message || 'Failed to delete project.'); // Replaced

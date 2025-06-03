@@ -37,7 +37,7 @@ const EmployeeList = ({ employees, onEdit, onDelete, page, rowsPerPage, totalEmp
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {employees.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((employee) => (
+                        {employees.map((employee) => (
                             <TableRow hover key={employee.id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
                                 <TableCell component="th" scope="row">
                                     {`${employee.firstName} ${employee.lastName}`}

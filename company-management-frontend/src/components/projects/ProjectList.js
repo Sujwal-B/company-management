@@ -40,7 +40,7 @@ const ProjectList = ({ projects, onEdit, onDelete, onManageEmployees, page, rows
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {projects.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((project) => (
+                        {projects.map((project) => (
                             <TableRow hover key={project.id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
                                 <TableCell component="th" scope="row">
                                     {project.name}
